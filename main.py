@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from schemas import Schemas
+from esp.esp import ESP
 from dotenv import load_dotenv
 
 
@@ -16,6 +17,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 schemas = Schemas()
+esp = ESP()
 
 TAGS_METADATA = [
     {
@@ -86,6 +88,27 @@ def info():
         'detail': "view /docs for documentation."
     }
     return JSONResponse(status_code=200, content=response)
+
+
+@app.get('/status', tags=['ESP'],
+    response_model=schemas.Detail,
+    responses={
+        400: {"model": schemas.Detail},
+        403: {"model": schemas.Detail},
+        404: {"model": schemas.Detail},
+        408: {"model": schemas.Detail},
+        429: {"model": schemas.Detail},
+        500: {"model": schemas.Detail}
+    }
+)
+async def status():
+    """
+    ### Eskom Status.
+    """
+    code, message, response = await esp.status()
+    if code != 200:
+        return JSONResponse(status_code=code, content={'detail': message})
+    return JSONResponse(status_code=code, content=response)
 
 
 # ---------------------------------------------------------------------------- #

@@ -10,6 +10,10 @@ from pydantic import BaseModel
 # --- Schemas Class ---------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 
+class NextStagesClass(BaseModel):
+        stage: int
+        stage_start_timestamp: str
+NextStages: NextStagesClass = NextStagesClass
 
 class Schemas:
 
@@ -23,3 +27,15 @@ class Schemas:
         detail: str
 
     Detail: DetailClass = DetailClass
+
+
+    # ------------------------------------------------------------------------ #
+    # --- ESP Schemas -------------------------------------------------------- #
+    # ------------------------------------------------------------------------ #
+    
+
+    class StatusClass(BaseModel):
+        name: str
+        next_stages: list[NextStages]
+        stage: str
+        stage_updated: str
