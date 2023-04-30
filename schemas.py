@@ -7,13 +7,20 @@ from pydantic import BaseModel
 
 
 # ---------------------------------------------------------------------------- #
-# --- Schemas Class ---------------------------------------------------------- #
+# --- Helper Schemas --------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
+
 
 class NextStagesClass(BaseModel):
         stage: int
         stage_start_timestamp: str
 NextStages: NextStagesClass = NextStagesClass
+
+
+# ---------------------------------------------------------------------------- #
+# --- Schemas Class ---------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
+
 
 class Schemas:
 
@@ -39,3 +46,22 @@ class Schemas:
         next_stages: list[NextStages]
         stage: str
         stage_updated: str
+    
+
+    # ------------------------------------------------------------------------ #
+    # --- Database Schemas --------------------------------------------------- #
+    # ------------------------------------------------------------------------ #
+
+    
+    class CreateUserClass(BaseModel):
+         name: str
+         area: str = None
+
+    CreateUser: CreateUserClass = CreateUserClass
+
+
+    class CreateTeamClass(BaseModel):
+         name: str
+         members: list[str]
+
+    CreateTeam: CreateTeamClass = CreateTeamClass

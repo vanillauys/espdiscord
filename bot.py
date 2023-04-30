@@ -3,11 +3,7 @@
 # ---------------------------------------------------------------------------- #
 
 
-import poweralert
-import asyncio
-import os
-from dotenv import load_dotenv
-from typing import Tuple
+from poweralert import poweralert
 
 
 # ---------------------------------------------------------------------------- #
@@ -15,8 +11,9 @@ from typing import Tuple
 # ---------------------------------------------------------------------------- #
 
 
-bot = poweralert.Bot()
+def main():
+    poweralert.run_bot()
 
 
 if __name__ == "__main__":
-    bot.run_discord_bot()
+    main()
