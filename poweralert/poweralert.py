@@ -4,6 +4,7 @@
 
 
 import os
+import logging
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -18,6 +19,11 @@ from poweralert import responses
 
 
 load_dotenv()
+logging.basicConfig(
+    filename='bot.log',
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 user_db = users.UsersDB()
 teams_db = teams.TeamsDB()
 schemas = Schemas()
@@ -32,6 +38,20 @@ response = responses.Responses()
 
 
 # ---------------------------------------------------------------------------- #
+# --- Discord Events --------------------------------------------------------- #
+# ---------------------------------------------------------------------------- #
+
+
+def get_user_id(ctx) -> str:
+    return f"{ctx.author.name}#{ctx.author.discriminator}"
+
+
+@bot.event
+async def on_ready():
+    logging.info(f"Logged in as {bot.user.name} (ID: {bot.user.id})")
+
+
+# ---------------------------------------------------------------------------- #
 # --- Discord Commands ------------------------------------------------------- #
 # ---------------------------------------------------------------------------- #
 
@@ -41,6 +61,8 @@ async def hello(ctx):
     """
     Greets the user.
     """
+    user_id = get_user_id(ctx)
+    logging.info(f"Command executed: {ctx.message.content} - {user_id}")
     await ctx.send(f"{alert}Hi, you can use !help for a list of commands.")
 
 
@@ -49,6 +71,8 @@ async def help(ctx):
     """
     Displays all commands.
     """
+    user_id = get_user_id(ctx)
+    logging.info(f"Command executed: {ctx.message.content} - {user_id}")
     embed = discord.Embed(title="Help", description="List of available commands:", color=0x00ff00)
     for command in bot.commands:
         embed.add_field(name=command.name, value=command.help, inline=False)
@@ -56,12 +80,22 @@ async def help(ctx):
 
 
 @bot.command()
+@commands.cooldown(1, 30, commands.BucketType.user)
 async def status(ctx):
     """
     Displays national loadshedding status.
     """
+    user_id = get_user_id(ctx)
+    logging.info(f"Command executed: {ctx.message.content} - {user_id}")
     message = await response.status()
     await ctx.send(message)
+
+
+@status.error
+async def status_error(ctx, error):
+    if isinstance(error, commands.CommandOnCooldown):
+        remaining_time = error.retry_after
+        await ctx.send(f'This command is on cooldown. Please try again in {remaining_time:.2f} seconds.')
 
 
 @bot.command()
@@ -69,6 +103,8 @@ async def list_members(ctx):
     """
     List all members in the server.
     """
+    user_id = get_user_id(ctx)
+    logging.info(f"Command executed: {ctx.message.content} - {user_id}")
     guild = ctx.guild
     members = guild.members
     member_list = f'{alert}List of members:\n'
@@ -83,6 +119,8 @@ async def create_team(ctx, name, *new_members):
     Creates a team with members from the server.
     eg. !create_team [team_name] (member1#0000) (member2#0000) ...
     """
+    user_id = get_user_id(ctx)
+    logging.info(f"Command executed: {ctx.message.content} - {user_id}")
     guild = ctx.guild
     member_list = []
 
