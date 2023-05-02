@@ -20,6 +20,10 @@ def time_format(time: str) -> str:
     dt_obj = datetime.fromisoformat(time)
     return dt_obj.strftime('%Y/%m/%d - %H:%M')
 
+def time_format_hrs(time: str) -> str:
+    dt_obj = datetime.fromisoformat(time)
+    return dt_obj.strftime('%H:%M (%A)')
+
 
 # ---------------------------------------------------------------------------- #
 # --- Response Class --------------------------------------------------------- #
@@ -52,12 +56,69 @@ class Responses():
         return r_message
 
 
-    def search():
-        # Todo search for area in ESP
-        return None
+    async def search(self, name: str) -> str:
+        if name is None:
+            return f"{alert}Error occured: incorrect arguments."
+        code, message, result = await ESP.area_search(name)
+        if code != 200:
+            return f"{alert}Error occured: {message}"
+        r_message = alert
+        for area in result:
+            r_message += f"🏠 {area['name']}\n"
+            r_message += f"  id:\t\t  {area['id']}\n"
+            r_message += f"  region:\t  {area['region']}\n\n"
+        return r_message
 
 
-    def area():
-        # Todo show area details from ESP
-        return None
+    async def area(self, area_id: str) -> str:
+        if area_id is None:
+            return f"{alert}Error occured: incorrect arguments."
+        code, message, result = await ESP.area_information(area_id)
+        if code != 200:
+            return f"{alert}Error occured: {message}"
+
+        events = result["events"]
+        info = result["info"]
+
+        r_message = alert 
+        r_message += f"🏠 {info['name']}: {info['region']}\n\n"
+
+        r_message += "💡Events:\n\n"
+        for event in events:
+            r_message += f"{event['note']}\n"
+            r_message += f"\t{time_format_hrs(event['start'])} - {time_format_hrs(event['end'])}\n"
+        
+        
+        return r_message
     
+
+    async def schedule(self, area_id: str) -> str:
+        if area_id is None:
+            return f"{alert}Error occured: incorrect arguments."
+        code, message, result = await ESP.area_information(area_id)
+        if code != 200:
+            return f"{alert}Error occured: {message}"
+
+        schedule = result["schedule"]
+        r_message = alert
+        r_message += f"📅 Schedule:\n\n"
+        for index, item in enumerate(schedule['days']):
+            if index < 4:
+                r_message += f"💡{item['name']} - {item['date']}\n"
+                for index, stages in enumerate(item['stages']):
+                    if index != 0 and index < 7:
+                        r_message += f"Stage {index}\n"
+                        for stage in stages:
+                            r_message += f"\t{stage}\n"
+                        r_message += "\n"
+        return r_message 
+
+
+    async def quota(self) -> str:
+        code, message, result = await ESP.quota()
+        if code != 200:
+            return f"{alert}Error occured: {message}"
+        
+        r_message = f"{alert}Used {result['allowance']['count']} of {result['allowance']['limit']} credits."
+        return r_message
+        

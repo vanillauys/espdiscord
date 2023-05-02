@@ -77,7 +77,22 @@ class ESP():
                 "Successfully retrieved area information from esp.",
                 response.json()
                 )
+    
 
+    async def quota(self) -> Tuple[int, str, dict]:
+        url = f"{self.base_url}/api_allowance"
+
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=self.headers)
+
+        if response.status_code != 200:
+            return (response.status_code, response.json()['error'], None)
+        else:
+            return (
+                response.status_code,
+                "Successfully retrieved area information from esp.",
+                response.json()
+                )
 
 # ---------------------------------------------------------------------------- #
 # --- Main ------------------------------------------------------------------- #
