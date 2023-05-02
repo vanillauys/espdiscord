@@ -24,9 +24,11 @@ log = logger()
 user_db = users.UsersDB()
 teams_db = teams.TeamsDB()
 schemas = Schemas()
+intents = discord.Intents(value=19235045637216).all()
+intents.members = True
 bot = commands.Bot(
     command_prefix='!',
-    intents=discord.Intents(value=19327560704).all(),
+    intents=intents,
     help_command=None
 )
 TOKEN = os.getenv('TOKEN')
@@ -110,11 +112,37 @@ async def help(ctx):
     await ctx.send(embed=embed)
 
 
+@bot.command()
+@commands.cooldown(5, 20, commands.BucketType.user)
+async def latency(ctx):
+    """
+    Shows latency to the bot.
+    eg. !latency
+    """
+    bot_ping = round(ctx.bot.latency * 1000)
+    server_id, server_name = get_server_details(ctx)
+    user_id = get_user_id(ctx)
+    log.command_executed(ctx.command.name, user_id, server_id, server_name)
+    await ctx.send(f"{alert}🤖 {bot_ping} ms.")
+
+
+@latency.error
+async def latency_error(ctx, error):
+    server_id, server_name = get_server_details(ctx)
+    user_id = get_user_id(ctx)
+
+    if isinstance(error, commands.CommandOnCooldown):
+        remaining_time = error.retry_after
+        log.cooldown(ctx.command.name, user_id, server_id, server_name)
+        await ctx.send(f'{alert}This command is on cooldown. Please try again in {remaining_time:.2f} seconds.')
+
+
 # !list_members
 @bot.command()
 async def list_members(ctx):
     """
     List all members in the server.
+    eg. !list_members
     """
     user_id = get_user_id(ctx)
     server_id, server_name = get_server_details(ctx)
